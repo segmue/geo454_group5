@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Income and Housing affordability in Switzerland</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    :root {
+      --bg: #f7f7f7;
+      --fg: #222;
+      --muted: #555;
+      --card: #fff;
+      --border: #ddd;
+      --shadow: 0 1px 4px rgba(0,0,0,0.08);
+      --link: #0066cc;
+    }
+    body.dark {
+      --bg: #121212;
+      --fg: #f1f1f1;
+      --muted: #c0c0c0;
+      --card: #1e1e1e;
+      --border: #2b2b2b;
+      --shadow: 0 1px 6px rgba(0,0,0,0.4);
+      --link: #66aaff;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .title {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 600;
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    select, button.toggle-theme {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--fg);
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease, border 0.2s ease;
+    }
+    select:focus, button.toggle-theme:focus {
+      outline: none;
+      border-color: var(--link);
+    }
+    button.toggle-theme {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: 6px;
+      padding: 18px;
+      margin-bottom: 20px;
+      transition: background 0.25s ease, border 0.25s ease;
+    }
+    h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+      font-size: 20px;
+    }
+    p {
+      margin: 0 0 12px 0;
+      color: var(--muted);
+    }
+    .app-frame {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      background: var(--bg);
+    }
+    .app-frame iframe {
+      display: block;
+      width: 100%;
+      height: 800px; /* 可按需调整 */
+      border: none;
+    }
+  </style>
+</head>
+<body class="light">
+  <header>
+    <div class="header-inner">
+      <h1 class="title" id="site-title">Income and Housing affordability in Switzerland</h1>
+      <div class="controls">
+        <select id="lang-switch" aria-label="Language">
+          <option value="en">English</option>
+          <option value="zh">简体中文</option>
+          <option value="de">Deutsch</option>
+          <option value="th">ไทย</option>
+        </select>
+        <button class="toggle-theme" id="theme-toggle" aria-label="Toggle theme">
+          <span id="theme-icon">🌞</span>
+          <span id="theme-label">Light</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="intro">
+      <h2 id="intro-title">Overview</h2>
+      <p id="intro-text">This site hosts the interactive map on income and housing affordability in Switzerland. Use the controls inside the app to explore.</p>
+    </section>
+
+    <section id="housing-app">
+      <h2 id="map-title">Interactive Map</h2>
+      <p id="map-desc">Shiny-based interactive housing affordability map.</p>
+      <div class="app-frame">
+        <!-- 将 src 替换为部署在 shinyapps.io 后生成的固定 URL -->
+        <iframe
+          src="https://metadream.shinyapps.io/r-code/"
+          frameborder="0"
+          scrolling="no"
+          allowfullscreen>
+          Your browser does not support iframes.
+        </iframe>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // 语言文案
+    const i18n = {
+      en: {
+        docTitle: "Income and Housing affordability in Switzerland",
+        siteTitle: "Income and Housing affordability in Switzerland",
+        introTitle: "Overview",
+        introText: "This site hosts the interactive map on income and housing affordability in Switzerland. Use the controls inside the app to explore.",
+        mapTitle: "Interactive Map",
+        mapDesc: "Shiny-based interactive housing affordability map.",
+        iframeFallback: "Your browser does not support iframes."
+      },
+      zh: {
+        docTitle: "瑞士收入与住房负担能力",
+        siteTitle: "瑞士收入与住房负担能力",
+        introTitle: "概览",
+        introText: "本网站提供瑞士收入与住房负担能力的交互式地图，可在应用内使用控制器进行探索。",
+        mapTitle: "交互式地图",
+        mapDesc: "基于 Shiny 的住房负担能力交互式地图。",
+        iframeFallback: "您的浏览器不支持 iframe。"
+      },
+      de: {
+        docTitle: "Einkommen und Wohnungserschwinglichkeit in der Schweiz",
+        siteTitle: "Einkommen und Wohnungserschwinglichkeit in der Schweiz",
+        introTitle: "Überblick",
+        introText: "Diese Seite enthält die interaktive Karte zur Einkommens- und Wohnungserschwinglichkeit in der Schweiz. Nutzen Sie die Steuerelemente in der App zum Erkunden.",
+        mapTitle: "Interaktive Karte",
+        mapDesc: "Shiny-basierte interaktive Karte zur Wohnungserschwinglichkeit.",
+        iframeFallback: "Ihr Browser unterstützt keine iframes."
+      },
+      th: {
+        docTitle: "รายได้และความสามารถในการจ่ายค่าที่อยู่อาศัยในสวิตเซอร์แลนด์",
+        siteTitle: "รายได้และความสามารถในการจ่ายค่าที่อยู่อาศัยในสวิตเซอร์แลนด์",
+        introTitle: "ภาพรวม",
+        introText: "เว็บไซต์นี้มีแผนที่เชิงโต้ตอบเกี่ยวกับรายได้และความสามารถในการจ่ายค่าที่อยู่อาศัยในสวิตเซอร์แลนด์ ใช้ตัวควบคุมในแอปเพื่อสำรวจข้อมูล",
+        mapTitle: "แผนที่เชิงโต้ตอบ",
+        mapDesc: "แผนที่เชิงโต้ตอบด้านความสามารถในการจ่ายค่าที่อยู่อาศัยด้วย Shiny",
+        iframeFallback: "เบราว์เซอร์ของคุณไม่รองรับ iframe"
+      }
+    };
+
+    const langSelect = document.getElementById('lang-switch');
+    const siteTitleEl = document.getElementById('site-title');
+    const introTitleEl = document.getElementById('intro-title');
+    const introTextEl = document.getElementById('intro-text');
+    const mapTitleEl = document.getElementById('map-title');
+    const mapDescEl = document.getElementById('map-desc');
+
+    function applyLanguage(lang) {
+      const t = i18n[lang] || i18n.en;
+      document.title = t.docTitle;
+      siteTitleEl.textContent = t.siteTitle;
+      introTitleEl.textContent = t.introTitle;
+      introTextEl.textContent = t.introText;
+      mapTitleEl.textContent = t.mapTitle;
+      mapDescEl.textContent = t.mapDesc;
+    }
+
+    langSelect.addEventListener('change', (e) => {
+      applyLanguage(e.target.value);
+    });
+
+    // 主题切换
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const themeLabel = document.getElementById('theme-label');
+
+    function setTheme(mode) {
+      if (mode === 'dark') {
+        document.body.classList.add('dark');
+        themeIcon.textContent = '🌙';
+        themeLabel.textContent = 'Dark';
+      } else {
+        document.body.classList.remove('dark');
+        themeIcon.textContent = '🌞';
+        themeLabel.textContent = 'Light';
+      }
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const isDark = document.body.classList.contains('dark');
+      setTheme(isDark ? 'light' : 'dark');
+    });
+
+    // 初始设置
+    applyLanguage('en');
+    setTheme('light');
+  </script>
+</body>
+</html>
