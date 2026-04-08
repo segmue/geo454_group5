@@ -1,0 +1,938 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Income and Housing affordability in Switzerland</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    :root {
+      --bg: #f7f7f7;
+      --fg: #222;
+      --muted: #555;
+      --card: #fff;
+      --border: #ddd;
+      --shadow: 0 1px 4px rgba(0,0,0,0.08);
+      --link: #0066cc;
+      --shooting-time: 3000ms;
+    }
+    body.dark {
+      --bg: #121212;
+      --fg: #f1f1f1;
+      --muted: #c0c0c0;
+      --card: #1e1e1e;
+      --border: #2b2b2b;
+      --shadow: 0 1px 6px rgba(0,0,0,0.4);
+      --link: #66aaff;
+      background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      line-height: 1.6;
+      transition: background 0.25s ease, color 0.25s ease;
+      overflow-x: hidden;
+      position: relative;
+    }
+    header, main {
+      position: relative;
+      z-index: 1;
+    }
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-inner {
+      width: min(95vw, 1500px);
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .title {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 600;
+    }
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    select, button.toggle-theme {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--fg);
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease, border 0.2s ease;
+    }
+    select:focus, button.toggle-theme:focus {
+      outline: none;
+      border-color: var(--link);
+    }
+    button.toggle-theme {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    main {
+      width: min(95vw, 1500px);
+      margin: 0 auto;
+      padding: 28px 24px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: 10px;
+      padding: clamp(16px, 2vw, 28px);
+      transition: background 0.25s ease, border 0.25s ease;
+    }
+    .hero {
+      background: linear-gradient(120deg, rgba(255,188,153,0.25), rgba(170,205,255,0.35));
+      border-color: rgba(255,255,255,0.2);
+    }
+    body.dark .hero {
+      background: linear-gradient(120deg, rgba(255,188,153,0.15), rgba(170,205,255,0.2));
+      border-color: var(--border);
+    }
+    .eyebrow {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 13px;
+      color: var(--muted);
+      margin: 0 0 6px;
+    }
+    .hero h2 {
+      margin: 0 0 10px;
+      font-size: clamp(24px, 4vw, 36px);
+    }
+    .hero #intro-text {
+      font-size: 16px;
+      color: var(--fg);
+    }
+    .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .hero-pills span {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--fg);
+      box-shadow: var(--shadow);
+    }
+    .section-heading {
+      margin-bottom: 12px;
+    }
+    .section-heading h2 {
+      margin: 0;
+    }
+    .rich-text p {
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+    .rich-text p:last-child {
+      margin-bottom: 0;
+    }
+    .highlight {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--fg);
+      border-left: 4px solid var(--link);
+      padding-left: 14px;
+      margin: 0;
+    }
+    .app-frame {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      background: var(--bg);
+    }
+    .app-frame iframe {
+      display: block;
+      width: 100%;
+      height: 800px;
+      border: none;
+    }
+    .map-note {
+      margin-top: 12px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .target-list {
+      list-style: none;
+      padding: 0;
+      margin: 12px 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .target-list li {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 14px;
+      box-shadow: var(--shadow);
+      color: var(--fg);
+    }
+    .sources-list {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+    }
+    .sources-list li {
+      margin-bottom: 8px;
+    }
+    .back-to-top {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 18px;
+      background: var(--link);
+      color: #fff;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 600;
+      margin: 10px auto 0;
+      box-shadow: var(--shadow);
+    }
+    .back-to-top:hover {
+      opacity: 0.85;
+    }
+    .collapsible .collapse-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .collapsible .heading-text {
+      flex: 1;
+      min-width: 0;
+    }
+    .collapsible .section-heading {
+      margin: 0;
+    }
+    .collapse-toggle {
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--fg);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border 0.2s ease, background 0.2s ease;
+    }
+    .collapse-toggle:hover {
+      border-color: var(--link);
+    }
+    .section-content {
+      margin-top: 16px;
+    }
+    .collapsible.collapsed .section-content {
+      display: none;
+    }
+
+    /* Background layers */
+    #dots-bg,
+    #night-bg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+      transition: opacity 0.8s ease;
+    }
+    #night-bg {
+      opacity: 0;
+      transform: rotateZ(45deg);
+    }
+    body.dark #night-bg {
+      opacity: 1;
+    }
+    body.dark #dots-bg {
+      opacity: 0;
+    }
+    #dots-bg {
+      opacity: 1;
+    }
+    .ball {
+      position: absolute;
+      width: 1em;
+      height: 1em;
+      border-radius: 50%;
+      opacity: 0.7;
+      filter: blur(0.5px);
+    }
+    .shooting_star {
+      position: absolute;
+      height: 2px;
+      background: linear-gradient(-45deg, rgba(95,145,255,1), rgba(0,0,255,0));
+      border-radius: 999px;
+      filter: drop-shadow(0 0 6px rgba(105,155,255,1));
+      animation: tail var(--shooting-time) ease-in-out infinite,
+                 shooting var(--shooting-time) ease-in-out infinite;
+      animation-delay: var(--star-delay, 0s);
+      opacity: 0.8;
+    }
+    .shooting_star::before,
+    .shooting_star::after {
+      content: '';
+      position: absolute;
+      top: calc(50% - 1px);
+      right: 0;
+      height: 2px;
+      background: linear-gradient(-45deg, rgba(0,0,255,0), rgba(95,145,255,1), rgba(0,0,255,0));
+      border-radius: 100%;
+      animation: shining var(--shooting-time) ease-in-out infinite;
+      animation-delay: var(--star-delay, 0s);
+    }
+    .shooting_star::before {
+      transform: translateX(50%) rotateZ(45deg);
+    }
+    .shooting_star::after {
+      transform: translateX(50%) rotateZ(-45deg);
+    }
+    @keyframes tail {
+      0% {
+        width: 0;
+      }
+      30% {
+        width: 100px;
+      }
+      100% {
+        width: 0;
+      }
+    }
+    @keyframes shining {
+      0% {
+        width: 0;
+      }
+      50% {
+        width: 30px;
+      }
+      100% {
+        width: 0;
+      }
+    }
+    @keyframes shooting {
+      0% {
+        transform: translateX(0);
+      }
+      100% {
+        transform: translateX(300px);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .header-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .collapsible .collapse-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body class="light" id="top">
+  <div id="dots-bg" aria-hidden="true"></div>
+  <div class="night" id="night-bg" aria-hidden="true"></div>
+
+  <header>
+    <div class="header-inner">
+      <h1 class="title" id="site-title">Income and Housing affordability in Switzerland</h1>
+      <div class="controls">
+        <select id="lang-switch" aria-label="Language">
+          <option value="en">English</option>
+          <option value="zh">简体中文</option>
+          <option value="de">Deutsch</option>
+          <option value="th">ไทย</option>
+        </select>
+        <button class="toggle-theme" id="theme-toggle" aria-label="Toggle theme">
+          <span id="theme-icon">🌞</span>
+          <span id="theme-label">Light</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section id="intro" class="hero collapsible">
+      <div class="collapse-header">
+        <div class="heading-text">
+          <p class="eyebrow" id="hero-eyebrow">Affordable housing for all by 2030</p>
+          <h2 id="intro-title">Mapping how income and rent interact across Switzerland</h2>
+        </div>
+        <button class="collapse-toggle" type="button" aria-expanded="true"></button>
+      </div>
+      <div class="section-content">
+        <p id="intro-text">Population growth, displacement dynamics and limited rent controls are pushing municipalities to their limits. Our dashboard links income data with rents so you can see where affordability is most under pressure.</p>
+        <div class="hero-pills">
+          <span id="hero-pill-1">UN SDG 11 · Sustainable Cities</span>
+          <span id="hero-pill-2">30% affordability threshold</span>
+          <span id="hero-pill-3">Municipality-level insights</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="background" class="collapsible">
+      <div class="collapse-header">
+        <div class="heading-text">
+          <div class="section-heading">
+            <p class="eyebrow" id="background-eyebrow">Background information</p>
+            <h2 id="background-title">Why housing affordability matters</h2>
+          </div>
+        </div>
+        <button class="collapse-toggle" type="button" aria-expanded="true"></button>
+      </div>
+      <div class="section-content">
+        <div class="rich-text" id="background-body"></div>
+      </div>
+    </section>
+
+    <section id="research" class="collapsible">
+      <div class="collapse-header">
+        <div class="heading-text">
+          <div class="section-heading">
+            <p class="eyebrow" id="research-eyebrow">Research question</p>
+            <h2 id="research-title">Guiding question</h2>
+          </div>
+        </div>
+        <button class="collapse-toggle" type="button" aria-expanded="true"></button>
+      </div>
+      <div class="section-content">
+        <p class="highlight" id="research-text"></p>
+      </div>
+    </section>
+
+    <section id="data" class="collapsible">
+      <div class="collapse-header">
+        <div class="heading-text">
+          <div class="section-heading">
+            <p class="eyebrow" id="data-eyebrow">Data analysis</p>
+            <h2 id="data-title">How we built the dataset</h2>
+          </div>
+        </div>
+        <button class="collapse-toggle" type="button" aria-expanded="true"></button>
+      </div>
+      <div class="section-content">
+        <div class="rich-text" id="data-body"></div>
+      </div>
+    </section>
+
+    <section id="housing-app">
+      <div class="section-heading">
+        <p class="eyebrow" id="map-eyebrow">Map</p>
+        <h2 id="map-title">Interactive Map</h2>
+      </div>
+      <p id="map-desc">Explore municipality-level rent-to-income ratios, median incomes and average rents.</p>
+      <div class="app-frame">
+        <iframe
+          src="https://metadream.shinyapps.io/r-code/"
+          frameborder="0"
+          scrolling="no"
+          allowfullscreen>
+          Your browser does not support iframes.
+        </iframe>
+      </div>
+      <p class="map-note" id="map-note">Tip: Use the controls inside the Shiny app to switch layers, compare municipalities and download the data.</p>
+    </section>
+
+    <section id="concept" class="collapsible">
+      <div class="collapse-header">
+        <div class="heading-text">
+          <div class="section-heading">
+            <p class="eyebrow" id="concept-eyebrow">Visualization concept</p>
+            <h2 id="concept-title">Design choices and target groups</h2>
+          </div>
+        </div>
+        <button class="collapse-toggle" type="button" aria-expanded="true"></button>
+      </div>
+      <div class="section-content">
+        <div class="rich-text" id="concept-body"></div>
+        <h3 id="target-heading">Two target groups</h3>
+        <ul class="target-list" id="target-list"></ul>
+      </div>
+    </section>
+
+    <section id="sources" class="collapsible">
+      <div class="collapse-header">
+        <div class="heading-text">
+          <div class="section-heading">
+            <p class="eyebrow" id="sources-eyebrow">Sources</p>
+            <h2 id="sources-title">References</h2>
+          </div>
+        </div>
+        <button class="collapse-toggle" type="button" aria-expanded="true"></button>
+      </div>
+      <div class="section-content">
+        <ul class="sources-list" id="sources-list"></ul>
+      </div>
+    </section>
+
+    <section id="authors" class="collapsible">
+      <div class="collapse-header">
+        <div class="heading-text">
+          <div class="section-heading">
+            <p class="eyebrow" id="authors-eyebrow">Authors</p>
+            <h2 id="authors-title">Who created this project</h2>
+          </div>
+        </div>
+        <button class="collapse-toggle" type="button" aria-expanded="true"></button>
+      </div>
+      <div class="section-content">
+        <div class="rich-text" id="authors-text"></div>
+      </div>
+    </section>
+
+    <a href="#top" class="back-to-top" id="back-to-top">Back to top</a>
+  </main>
+
+  <script>
+    const references = [
+      "Frank, S., Güntner, S., Menzl, M. & Sturm, G. (eds.) (2024) <em>Soziologie in der vielschichtigen Stadt.</em> In Stadt, Raum und Gesellschaft, Springer Fachmedien Wiesbaden, DOI: 10.1007/978-3-658-45302-2.",
+      "United Nations Human Settlements Programme (2024) <em>Review of existing elements and options for the development of a framework for measuring and reporting on the adequacy of housing across diverse national and local contexts.</em> United Nations, Nairobi."
+    ];
+
+    const i18n = {
+      en: {
+        docTitle: "Income and Housing affordability in Switzerland",
+        siteTitle: "Income and Housing affordability in Switzerland",
+        heroEyebrow: "",
+        introTitle: "Mapping how income and rent interact across Switzerland",
+        introText: "Population growth, displacement dynamics and limited rent controls are pushing municipalities to their limits. Our dashboard links income data with rents so you can see where affordability is most under pressure.",
+        heroPill1: "UN SDG 11 · Sustainable Cities",
+        heroPill2: "30% affordability threshold",
+        heroPill3: "Municipality-level insights",
+        backgroundEyebrow: "Background information",
+        backgroundTitle: "Why housing affordability matters",
+        backgroundBody: `
+          <p>The population of Switzerland is growing, and this is also noticeable in the housing market. The market is becoming increasingly strained, and earlier estimates suggested that by this year, around 50,000 housing units would be lacking (cf. Frank et al., p. 27). To better assess this situation, the Sustainable Development Goals of the United Nations are considered. Goal 11 states that affordable housing is essential for sustainable development. This goal has been further specified by the 30% threshold: if rent is below 30% of net household income, housing is considered affordable (cf. United Nations Human Settlements Programme, p. 3).</p>
+          <p>In the Swiss context, data shows that as early as 2015, around 21% of rental households were considered financially burdened. These households had to spend more than 30% of their income on rent.</p>
+          <p>In addition to population growth, the housing market is further strained by displacement. Swiss tenancy law allows so-called “no-fault evictions” by property owners. Following such evictions, buildings are often demolished or extensively renovated and replaced with new constructions. Former residents are therefore forced to search for new housing, and between 2014 and 2019, around 13,000 people were displaced in this way. Notably, affected households tend to be financially worse off, while incoming residents generally have higher incomes. This further exacerbates existing inequalities.</p>
+          <p>Another aspect is that tenants often have to enforce fair rent prices themselves, as government controls are limited. This can lead to excessive pricing. To examine this issue more closely, this website presents a visualization that combines income and rental costs. The aim is to make the problem visible and to analyse the situation at the level of individual municipalities using an interactive map.</p>
+        `,
+        researchEyebrow: "Research question",
+        researchTitle: "Guiding question",
+        researchText: "How does the relationship between household income and housing affordability vary in Switzerland?",
+        dataEyebrow: "Data analysis",
+        dataTitle: "How we built the dataset",
+        dataBody: `
+          <p>The dataset merges municipality-level median disposable household income from the Swiss Federal Statistical Office (Structural Survey 2021) with average annual rents published by the Federal Housing Office (2023). Both sources were harmonized to the same municipal boundaries.</p>
+          <p>All income values were converted into CHF per month and adjusted for household size; rents were normalized per dwelling. We then calculated rent-to-income ratios, flagged cases above the 30% threshold and generated quintiles for comparison.</p>
+          <p>These indicators feed the interactive map, allowing users to switch between income, rent and affordability layers, download values and focus on municipalities of interest.</p>
+        `,
+        conceptEyebrow: "Visualization concept",
+        conceptTitle: "Design choices and target groups",
+        conceptBody: `
+          <p>The visualization centers on a choropleth map with a complementary legend that highlights where rent-to-income ratios exceed the 30% threshold. </p>
+          <p></p>
+        `,
+        targetHeading: "Two target groups",
+        targetList: [
+          "<strong>Tenants & housing initiatives:</strong> They can compare municipalities, identify hotspots of displacement and advocate for fair rent practices.",
+          "<strong>Policy makers & planners:</strong> They can prioritise investment in affordable housing and evaluate how local income levels align with rental markets."
+        ],
+        mapTitle: "Interactive Map",
+        mapDesc: "Explore municipality-level rent-to-income ratios, median incomes and average rents.",
+        mapNote: "Tip: Use the controls inside the Shiny app to switch layers, compare municipalities and download the data.",
+        sourcesEyebrow: "Sources",
+        sourcesTitle: "References",
+        sourcesList: references,
+        authorsEyebrow: "Authors",
+        authorsTitle: "Who created this project",
+        authorsText: `
+          <p>Group 5</p>
+          <p>Sebastian Gmür，Dang Jiaxi，Moritz Birle，Ding Shanshan</p>
+        `,
+        backToTop: "Back to top",
+        iframeFallback: "Your browser does not support iframes.",
+        collapseShow: "Show section",
+        collapseHide: "Hide section"
+      },
+      zh: {
+        docTitle: "瑞士收入与住房成本",
+        siteTitle: "瑞士收入与住房成本",
+        heroEyebrow: "",
+        introTitle: "瑞士各市镇收入水平与住房成本",
+        introText: "人口增长、迁出压力以及有限的租金监管正让许多市镇捉襟见肘。我们的网站把收入与租金结合起来，帮助您看清哪些地区的住房负担最为沉重。",
+        heroPill1: "联合国可持续发展目标11 · 可持续城市",
+        heroPill2: "30%负担能力阈值",
+        heroPill3: "市镇层面的洞见",
+        backgroundEyebrow: "背景信息",
+        backgroundTitle: "为何住房负担能力如此重要",
+        backgroundBody: `
+          <p>瑞士的人口正在增长，这一点在住房市场上也有所体现。住房市场正变得日益紧张，早期的估计表明，到今年为止大约将缺少5万套住房（参见 Frank 等，第27页）。为了更好地评估这一状况，本文参考了联合国的可持续发展目标。其中，第11项目标指出，可负担住房是实现可持续发展的关键因素。该目标进一步通过30%的标准进行了具体化：如果租金低于家庭净收入的30%，则该住房被视为可负担（参见联合国人类住区规划署，第3页）。</p>
+          <p>就瑞士而言，数据显示早在2015年，约有21%的租赁家庭被认为承受着较大的经济压力。这些家庭需要将超过30%的收入用于支付房租。</p>
+          <p>除了人口增长之外，住房市场还因“迁出压力”而进一步加剧。瑞士租赁法允许房东进行所谓的“空置解约”。在此类解约之后，建筑物通常会被拆除或进行大规模翻修，并由新建筑取代。原住居民因此被迫寻找新的住所。在2014年至2019年期间，大约有13,000人因此被迫搬迁。值得注意的是，受影响的家庭通常经济状况较差，而新搬入者往往收入较高，这进一步加剧了现有的不平等。</p>
+          <p>由于政府监管有限，租户往往需要自行维护合理的租金水平，这可能导致租金过高。为了更深入地分析这一问题，本网站提供了一种将收入与租金成本相结合的可视化展示。其目的是使问题更加直观，并通过交互式地图在各个市镇层面上分析住房状况。</p>
+        `,
+        researchEyebrow: "研究问题",
+        researchTitle: "核心问题",
+        researchText: "瑞士家庭收入与住房可负担性之间的关系如何变化？",
+        dataEyebrow: "数据分析",
+        dataTitle: "我们如何构建数据集",
+        dataBody: `
+          <p>我们将瑞士联邦统计局2021年结构性调查中的各市镇家庭可支配收入中位数，与联邦住房局2023年公布的平均年租金结合，并统一到相同的市镇边界。</p>
+          <p>所有收入被换算为每月瑞郎，并根据家庭规模进行调整；租金按每套住房进行了标准化。随后我们计算租金收入比，标记超过30%阈值的区域，并生成五分位数以便比较。</p>
+          <p>这些指标被输入到交互式地图中，使用户可以切换收入、租金和负担能力图层，下载数据并聚焦某个市镇。</p>
+        `,
+        conceptEyebrow: "可视化构想",
+        conceptTitle: "设计思路与目标群体",
+        conceptBody: `
+          <p>可视化以分级着色地图为核心，并配有图例，突出显示租金收入比超过30%的地方。</p>
+          <p></p>
+        `,
+        targetHeading: "两个目标群体",
+        targetList: [
+          "<strong>租户与住房倡议组织：</strong> 他们可以比较不同市镇，识别迁移热点，并为公平租金发声。",
+          "<strong>政策制定者与城市规划者：</strong> 他们可以确定应优先投入可负担住房的地区，并评估本地收入与租赁市场之间的匹配程度。"
+        ],
+        mapTitle: "交互式地图",
+        mapDesc: "探索市镇层面的租金收入比、中位收入和平均租金。",
+        mapNote: "提示：在 Shiny 应用中使用控制器切换图层、比较市镇并下载数据。",
+        sourcesEyebrow: "参考资料",
+        sourcesTitle: "引用",
+        sourcesList: references,
+        authorsEyebrow: "作者",
+        authorsTitle: "项目团队",
+        authorsText: `
+          <p>Group 5</p>
+          <p>Sebastian Gmür，Dang Jiaxi，Moritz Birle，Ding Shanshan</p>
+        `,
+        backToTop: "返回顶部",
+        iframeFallback: "您的浏览器不支持 iframe。",
+        collapseShow: "展开内容",
+        collapseHide: "收起内容"
+      },
+      de: {
+        docTitle: "Einkommen und Wohnungserschwinglichkeit in der Schweiz",
+        siteTitle: "Einkommen und Wohnungserschwinglichkeit in der Schweiz",
+        heroEyebrow: "",
+        introTitle: "Einkommen und Mieten im Überblick über die Schweizer Gemeinden",
+        introText: "Bevölkerungswachstum, Verdrängung und begrenzte Mietkontrollen setzen die Gemeinden stark unter Druck. Unser Dashboard verknüpft Einkommensdaten mit Mieten, damit sichtbar wird, wo die Leistbarkeit besonders bedroht ist.",
+        heroPill1: "UNO-Ziel 11 · Nachhaltige Städte",
+        heroPill2: "30%-Grenze für Leistbarkeit",
+        heroPill3: "Einblicke auf Gemeindeebene",
+        backgroundEyebrow: "Hintergrundinformation",
+        backgroundTitle: "Warum bezahlbarer Wohnraum zählt",
+        backgroundBody: `
+          <p>Die Bevölkerung der Schweiz wächst und dies ist auch auf dem Wohnungsmarkt spürbar. Dieser wird zunehmend angespannt, und frühere Schätzungen gingen davon aus, dass bis zu diesem Jahr etwa 50’000 Wohnungen fehlen werden (vgl. Frank et al., S. 27). Um die Angespanntheit besser einordnen zu können, werden die «Sustainable Development Goals» der Vereinten Nationen herangezogen. Im Ziel 11 wird festgehalten, dass bezahlbarer Wohnraum essenziell für eine nachhaltige Entwicklung ist. Dieses Ziel wurde weiter konkretisiert durch die Grenze von 30% des Nettoeinkommens. Liegt der Mietpreis unter 30% des Haushaltseinkommens, gilt eine Wohnung als bezahlbar (vgl. United Nations Human Settlements Programme, S. 3).</p>
+          <p>Auf die Schweiz bezogen zeigen Zahlen, dass bereits 2015 rund 21% der Mietverhältnisse als finanziell belastet galten. Diese Haushalte mussten also mehr als 30% ihres Einkommens für Miete aufwenden.</p>
+          <p>Neben dem Bevölkerungswachstum wird der Wohnungsmarkt auch durch Verdrängung zusätzlich angespannt. Das Schweizer Mietrecht erlaubt sogenannte Leerkündigungen durch Eigentümer. Nach solchen Kündigungen werden Gebäude häufig abgerissen oder umfassend saniert und durch Neubauten ersetzt. Die ehemaligen Bewohner sind dadurch gezwungen, neuen Wohnraum zu suchen. Zwischen 2014 und 2019 wurden auf diese Weise rund 13’000 Menschen verdrängt. Auffällig ist dabei, dass die betroffenen Haushalte im Durchschnitt finanziell schlechter gestellt sind, während neu zuziehende Personen tendenziell höhere Einkommen aufweisen. Dies verstärkt bestehende Ungleichheiten zusätzlich.</p>
+          <p>Ein weiterer Aspekt ist, dass Mieterinnen und Mieter sich oft selbst um die Durchsetzung fairer Mietpreise kümmern müssen, da staatliche Kontrollen begrenzt sind. Dies kann zu überhöhten Preisen führen. Um dieses Problem näher zu betrachten, zeigt diese Website eine Visualisierung, die Einkommen und Mietkosten gemeinsam darstellt.</p>
+        `,
+        researchEyebrow: "Forschungsfrage",
+        researchTitle: "Leitfrage",
+        researchText: "Wie variiert der Zusammenhang zwischen Haushaltseinkommen und der Leistbarkeit von Wohnraum in der Schweiz?",
+        dataEyebrow: "Datenanalyse",
+        dataTitle: "So entstand der Datensatz",
+        dataBody: `
+          <p>Der Datensatz kombiniert das mediane verfügbare Haushaltseinkommen pro Gemeinde (Strukturerhebung 2021 des Bundesamtes für Statistik) mit den durchschnittlichen Jahresmieten des Bundesamtes für Wohnungswesen (2023). Beide Quellen wurden auf identische Gemeindegrenzen harmonisiert.</p>
+          <p>Alle Einkommen wurden in CHF pro Monat umgerechnet und an die Haushaltsgröße angepasst; die Mieten wurden auf eine Wohnung normalisiert. Anschließend berechneten wir Mietbelastungsquoten, markierten Fälle über der 30%-Grenze und bildeten Quintile zum Vergleich.</p>
+          <p>Diese Indikatoren speisen die interaktive Karte, in der sich Einkommens-, Miet- und Leistbarkeits-Ebenen umschalten, Werte herunterladen und gewünschte Gemeinden hervorheben lassen.</p>
+        `,
+        conceptEyebrow: "Idee der Visualisierung",
+        conceptTitle: "Gestaltungsentscheide und Zielgruppen",
+        conceptBody: `
+          <p>Die Visualisierung basiert auf einer Choroplethenkarte mit Legende, die zeigt, wo Mietbelastungsquoten die 30%-Grenze überschreiten. </p>
+          <p></p>
+        `,
+        targetHeading: "Zwei Zielgruppen",
+        targetList: [
+          "<strong>Mieter:innen und Wohninitiativen:</strong> Sie können Gemeinden vergleichen, Verdrängungsschwerpunkte erkennen und sich für faire Mieten einsetzen.",
+          "<strong>Politik und Planung:</strong> Sie können Investitionen in bezahlbaren Wohnraum priorisieren und prüfen, wie gut lokale Einkommen mit den Mietmärkten zusammenpassen."
+        ],
+        mapTitle: "Interaktive Karte",
+        mapDesc: "Erkunden Sie Mietbelastungsquoten, Medianeinkommen und Durchschnittsmieten auf Gemeindeebene.",
+        mapNote: "Tipp: Verwenden Sie die Steuerelemente in der Shiny-App, um Ebenen zu wechseln, Gemeinden zu vergleichen und Daten herunterzuladen.",
+        sourcesEyebrow: "Quellen",
+        sourcesTitle: "Literatur",
+        sourcesList: references,
+        authorsEyebrow: "Autor:innen",
+        authorsTitle: "Wer hinter dem Projekt steht",
+        authorsText: `
+          <p>Group 5</p>
+          <p>Sebastian Gmür，Dang Jiaxi，Moritz Birle，Ding Shanshan</p>
+        `,
+        backToTop: "Zurück nach oben",
+        iframeFallback: "Ihr Browser unterstützt keine iframes.",
+        collapseShow: "Abschnitt anzeigen",
+        collapseHide: "Abschnitt verbergen"
+      },
+      th: {
+        docTitle: "รายได้และความสามารถในการจ่ายค่าที่อยู่อาศัยในสวิตเซอร์แลนด์",
+        siteTitle: "รายได้และความสามารถในการจ่ายค่าที่อยู่อาศัยในสวิตเซอร์แลนด์",
+        heroEyebrow: "",
+        introTitle: "แผนที่ความสัมพันธ์ระหว่างรายได้กับค่าเช่าทั่วสวิตเซอร์แลนด์",
+        introText: "การเพิ่มขึ้นของประชากร กระบวนการไล่รื้อ และการควบคุมค่าเช่าที่จำกัดกำลังกดดันเทศบาลต่าง ๆ อย่างหนัก แดชบอร์ดของเรานำข้อมูลรายได้มารวมกับค่าเช่าเพื่อให้เห็นจุดที่ภาระด้านที่อยู่อาศัยสูงที่สุด",
+        heroPill1: "SDG 11 · เมืองยั่งยืน",
+        heroPill2: "เกณฑ์ความสามารถในการจ่าย 30%",
+        heroPill3: "ข้อมูลเชิงลึกระดับเทศบาล",
+        backgroundEyebrow: "ข้อมูลพื้นฐาน",
+        backgroundTitle: "เหตุใดความสามารถในการจ่ายค่าที่อยู่อาศัยจึงสำคัญ",
+        backgroundBody: `
+          <p>ประชากรของประเทศสวิตเซอร์แลนด์กำลังเพิ่มขึ้น และสิ่งนี้ก็สะท้อนให้เห็นในตลาดที่อยู่อาศัยเช่นกัน ตลาดมีความตึงตัวมากขึ้นเรื่อย ๆ และการประมาณการก่อนหน้านี้ชี้ว่า ภายในปีนี้อาจจะขาดแคลนที่อยู่อาศัยประมาณ 50,000 หน่วย (ดู Frank et al., หน้า 27) เพื่อให้สามารถประเมินสถานการณ์นี้ได้ดียิ่งขึ้น จึงมีการอ้างอิงถึงเป้าหมายการพัฒนาที่ยั่งยืนขององค์การสหประชาชาติ โดยในเป้าหมายที่ 11 ระบุว่า ที่อยู่อาศัยที่มีราคาที่ประชาชนสามารถเข้าถึงได้เป็นสิ่งสำคัญต่อการพัฒนาที่ยั่งยืน เป้าหมายนี้ได้ถูกกำหนดให้ชัดเจนขึ้นด้วยเกณฑ์ 30% กล่าวคือ หากค่าเช่าต่ำกว่า 30% ของรายได้สุทธิของครัวเรือน จะถือว่าที่อยู่อาศัยนั้นมีความสามารถในการจ่ายได้ (ดู United Nations Human Settlements Programme, หน้า 3)</p>
+          <p>สำหรับประเทศสวิตเซอร์แลนด์ ข้อมูลแสดงให้เห็นว่า ตั้งแต่ปี 2015 มีประมาณ 21% ของครัวเรือนผู้เช่าที่ถือว่ามีภาระทางการเงินสูง กล่าวคือ ครัวเรือนเหล่านี้ต้องใช้รายได้มากกว่า 30% ไปกับค่าเช่า</p>
+          <p>นอกจากการเพิ่มขึ้นของประชากรแล้ว ตลาดที่อยู่อาศัยยังได้รับผลกระทบจากการโยกย้ายถิ่นฐานอีกด้วย กฎหมายการเช่าของสวิตเซอร์แลนด์อนุญาตให้เจ้าของสามารถทำการยกเลิกสัญญาเช่าแบบ “เลิกสัญญาเพื่อให้ที่อยู่ว่าง” ได้ หลังจากการยกเลิกดังกล่าว อาคารมักจะถูกทุบทิ้งหรือปรับปรุงครั้งใหญ่และสร้างใหม่ ทำให้ผู้อยู่อาศัยเดิมต้องหาที่อยู่อาศัยใหม่ ระหว่างปี 2014 ถึง 2019 มีผู้คนประมาณ 13,000 คนที่ถูกบังคับให้ย้ายออกในลักษณะนี้ โดยพบว่าครัวเรือนที่ได้รับผลกระทบมักมีฐานะทางการเงินที่ต่ำกว่า ในขณะที่ผู้อยู่อาศัยใหม่มักมีรายได้สูงกว่า ซึ่งยิ่งทำให้ความไม่เท่าเทียมเพิ่มมากขึ้น</p>
+          <p>อีกประเด็นหนึ่งคือ ผู้เช่ามักต้องดำเนินการด้วยตนเองเพื่อให้ได้ราคาค่าเช่าที่เป็นธรรม เนื่องจากการควบคุมของภาครัฐมีจำกัด ซึ่งอาจนำไปสู่ราคาค่าเช่าที่สูงเกินไป เว็บไซต์นี้จึงนำเสนอการแสดงผลข้อมูลที่รวมรายได้และค่าเช่าเข้าด้วยกัน เพื่อให้เห็นปัญหาได้ชัดเจนและสำรวจสถานการณ์ในระดับเทศบาลด้วยแผนที่เชิงโต้ตอบ</p>
+        `,
+        researchEyebrow: "คำถามวิจัย",
+        researchTitle: "คำถามหลัก",
+        researchText: "ความสัมพันธ์ระหว่างรายได้ครัวเรือนกับความสามารถในการเข้าถึงที่อยู่อาศัยในสวิตเซอร์แลนด์เปลี่ยนแปลงอย่างไร",
+        dataEyebrow: "การวิเคราะห์ข้อมูล",
+        dataTitle: "กระบวนการสร้างชุดข้อมูล",
+        dataBody: `
+          <p>ชุดข้อมูลของเราผสานค่ามัธยฐานของรายได้สุทธิครัวเรือนระดับเทศบาลจากสำนักงานสถิติแห่งสวิตเซอร์แลนด์ (Structural Survey 2021) เข้ากับค่าเช่ารายปีเฉลี่ยจากสำนักงานที่อยู่อาศัยแห่งสหพันธรัฐ (2023) และทำให้ใช้ขอบเขตเทศบาลเดียวกัน</p>
+          <p>เราปรับรายได้ทั้งหมดให้อยู่ในหน่วยฟรังก์ต่อเดือนและคำนึงถึงขนาดครัวเรือน พร้อมมาตรฐานค่าเช่าต่อหนึ่งหน่วยที่อยู่อาศัย จากนั้นคำนวณอัตราค่าเช่าต่อรายได้ ทำเครื่องหมายพื้นที่ที่เกินเกณฑ์ 30% และสร้างควินไทล์สำหรับการเปรียบเทียบ</p>
+          <p>ตัวชี้วัดเหล่านี้ถูกส่งเข้าแผนที่เชิงโต้ตอบ ให้ผู้ใช้สลับชั้นข้อมูลรายได้ ค่าเช่า และความสามารถในการจ่าย ดาวน์โหลดข้อมูล และมุ่งเน้นที่เทศบาลที่สนใจ</p>
+        `,
+        conceptEyebrow: "แนวคิดการแสดงข้อมูลด้วยภาพ",
+        conceptTitle: "แนวทางการออกแบบและกลุ่มเป้าหมาย",
+        conceptBody: `
+          <p>การแสดงผลใช้แผนที่แบบไล่สีเป็นศูนย์กลางพร้อมคำอธิบายสี เพื่อเน้นพื้นที่ที่อัตราค่าเช่าต่อรายได้เกิน 30% โทนร้อนหมายถึงความตึงตัว ส่วนโทนเย็นแสดงพื้นที่ที่ยังพอจะจ่ายได้</p>
+          <p></p>
+        `,
+        targetHeading: "สองกลุ่มเป้าหมาย",
+        targetList: [
+          "<strong>ผู้เช่าและภาคประชาสังคม:</strong> สามารถเปรียบเทียบเทศบาล ระบุจุดที่มีการย้ายถิ่น และเรียกร้องราคาค่าเช่าที่เป็นธรรม",
+          "<strong>ผู้กำหนดนโยบายและนักผังเมือง:</strong> สามารถจัดลำดับความสำคัญการลงทุนในที่อยู่อาศัยที่เข้าถึงได้ และประเมินความสอดคล้องของรายได้ท้องถิ่นกับตลาดเช่า"
+        ],
+        mapTitle: "แผนที่เชิงโต้ตอบ",
+        mapDesc: "สำรวจอัตราค่าเช่าต่อรายได้ รายได้มัธยฐาน และค่าเช่าเฉลี่ยของแต่ละเทศบาล",
+        mapNote: "เคล็ดลับ: ใช้แผงควบคุมในแอป Shiny เพื่อสลับชั้นข้อมูล เปรียบเทียบเทศบาล และดาวน์โหลดข้อมูล",
+        sourcesEyebrow: "แหล่งที่มา",
+        sourcesTitle: "การอ้างอิง",
+        sourcesList: references,
+        authorsEyebrow: "ผู้เขียน",
+        authorsTitle: "ทีมผู้ออกแบบโครงการ",
+        authorsText: `
+          <p>Group 5</p>
+          <p>Sebastian Gmür，Dang Jiaxi，Moritz Birle，Ding Shanshan</p>
+        `,
+        backToTop: "กลับขึ้นด้านบน",
+        iframeFallback: "เบราว์เซอร์ของคุณไม่รองรับ iframe",
+        collapseShow: "แสดงส่วน",
+        collapseHide: "ซ่อนส่วน"
+      }
+    };
+
+    const langSelect = document.getElementById('lang-switch');
+    const siteTitleEl = document.getElementById('site-title');
+    const heroEyebrowEl = document.getElementById('hero-eyebrow');
+    const introTitleEl = document.getElementById('intro-title');
+    const introTextEl = document.getElementById('intro-text');
+    const heroPill1El = document.getElementById('hero-pill-1');
+    const heroPill2El = document.getElementById('hero-pill-2');
+    const heroPill3El = document.getElementById('hero-pill-3');
+    const mapTitleEl = document.getElementById('map-title');
+    const mapDescEl = document.getElementById('map-desc');
+    const mapNoteEl = document.getElementById('map-note');
+    const backgroundEyebrowEl = document.getElementById('background-eyebrow');
+    const backgroundTitleEl = document.getElementById('background-title');
+    const backgroundBodyEl = document.getElementById('background-body');
+    const researchEyebrowEl = document.getElementById('research-eyebrow');
+    const researchTitleEl = document.getElementById('research-title');
+    const researchTextEl = document.getElementById('research-text');
+    const dataEyebrowEl = document.getElementById('data-eyebrow');
+    const dataTitleEl = document.getElementById('data-title');
+    const dataBodyEl = document.getElementById('data-body');
+    const conceptEyebrowEl = document.getElementById('concept-eyebrow');
+    const conceptTitleEl = document.getElementById('concept-title');
+    const conceptBodyEl = document.getElementById('concept-body');
+    const targetHeadingEl = document.getElementById('target-heading');
+    const targetListEl = document.getElementById('target-list');
+    const sourcesEyebrowEl = document.getElementById('sources-eyebrow');
+    const sourcesTitleEl = document.getElementById('sources-title');
+    const sourcesListEl = document.getElementById('sources-list');
+    const authorsEyebrowEl = document.getElementById('authors-eyebrow');
+    const authorsTitleEl = document.getElementById('authors-title');
+    const authorsTextEl = document.getElementById('authors-text');
+    const backToTopEl = document.getElementById('back-to-top');
+    const collapseToggles = document.querySelectorAll('.collapse-toggle');
+
+    function updateToggleLabels(lang) {
+      const t = i18n[lang] || i18n.en;
+      collapseToggles.forEach(btn => {
+        const section = btn.closest('.collapsible');
+        const isCollapsed = section.classList.contains('collapsed');
+        btn.textContent = isCollapsed ? t.collapseShow : t.collapseHide;
+      });
+    }
+
+    collapseToggles.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const section = btn.closest('.collapsible');
+        section.classList.toggle('collapsed');
+        btn.setAttribute('aria-expanded', !section.classList.contains('collapsed'));
+        updateToggleLabels(langSelect.value);
+      });
+    });
+
+    function applyLanguage(lang) {
+      const t = i18n[lang] || i18n.en;
+      document.title = t.docTitle;
+      siteTitleEl.textContent = t.siteTitle;
+      heroEyebrowEl.textContent = t.heroEyebrow;
+      introTitleEl.textContent = t.introTitle;
+      introTextEl.textContent = t.introText;
+      heroPill1El.textContent = t.heroPill1;
+      heroPill2El.textContent = t.heroPill2;
+      heroPill3El.textContent = t.heroPill3;
+      mapTitleEl.textContent = t.mapTitle;
+      mapDescEl.textContent = t.mapDesc;
+      mapNoteEl.textContent = t.mapNote;
+      backgroundEyebrowEl.textContent = t.backgroundEyebrow;
+      backgroundTitleEl.textContent = t.backgroundTitle;
+      backgroundBodyEl.innerHTML = t.backgroundBody;
+      researchEyebrowEl.textContent = t.researchEyebrow;
+      researchTitleEl.textContent = t.researchTitle;
+      researchTextEl.textContent = t.researchText;
+      dataEyebrowEl.textContent = t.dataEyebrow;
+      dataTitleEl.textContent = t.dataTitle;
+      dataBodyEl.innerHTML = t.dataBody;
+      conceptEyebrowEl.textContent = t.conceptEyebrow;
+      conceptTitleEl.textContent = t.conceptTitle;
+      conceptBodyEl.innerHTML = t.conceptBody;
+      targetHeadingEl.textContent = t.targetHeading;
+      targetListEl.innerHTML = t.targetList.map(item => `<li>${item}</li>`).join('');
+      sourcesEyebrowEl.textContent = t.sourcesEyebrow;
+      sourcesTitleEl.textContent = t.sourcesTitle;
+      sourcesListEl.innerHTML = t.sourcesList.map(item => `<li>${item}</li>`).join('');
+      authorsEyebrowEl.textContent = t.authorsEyebrow;
+      authorsTitleEl.textContent = t.authorsTitle;
+      authorsTextEl.innerHTML = t.authorsText;
+      backToTopEl.textContent = t.backToTop;
+      updateToggleLabels(lang);
+    }
+
+    langSelect.addEventListener('change', (e) => {
+      applyLanguage(e.target.value);
+    });
+
+    const themeToggle = document.getElementById('theme-toggle');
+    const themeIcon = document.getElementById('theme-icon');
+    const themeLabel = document.getElementById('theme-label');
+
+    function setTheme(mode) {
+      if (mode === 'dark') {
+        document.body.classList.add('dark');
+        themeIcon.textContent = '🌙';
+        themeLabel.textContent = 'Dark';
+      } else {
+        document.body.classList.remove('dark');
+        themeIcon.textContent = '🌞';
+        themeLabel.textContent = 'Light';
+      }
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const isDark = document.body.classList.contains('dark');
+      setTheme(isDark ? 'light' : 'dark');
+    });
+
+    applyLanguage('en');
+    setTheme('light');
+
+    /* Light-mode floating dots */
+    const dotsContainer = document.getElementById('dots-bg');
+    const colors = ["#3CC157", "#2AA7FF", "#1B1B1B", "#FCBC0F", "#F85F36"];
+    const numBalls = 50;
+    const balls = [];
+
+    for (let i = 0; i < numBalls; i++) {
+      const ball = document.createElement("div");
+      ball.classList.add("ball");
+      ball.style.background = colors[Math.floor(Math.random() * colors.length)];
+      ball.style.left = `${Math.floor(Math.random() * 100)}vw`;
+      ball.style.top = `${Math.floor(Math.random() * 100)}vh`;
+      const scale = Math.random();
+      ball.style.transform = `scale(${scale})`;
+      const size = `${Math.random()}em`;
+      ball.style.width = size;
+      ball.style.height = size;
+
+      balls.push(ball);
+      dotsContainer.append(ball);
+    }
+
+    balls.forEach((el, i) => {
+      const to = {
+        x: Math.random() * (i % 2 === 0 ? -11 : 11),
+        y: Math.random() * 12
+      };
+
+      el.animate(
+        [
+          { transform: "translate(0, 0)" },
+          { transform: `translate(${to.x}rem, ${to.y}rem)` }
+        ],
+        {
+          duration: (Math.random() + 1) * 2000,
+          direction: "alternate",
+          fill: "both",
+          iterations: Infinity,
+          easing: "ease-in-out"
+        }
+      );
+    });
+
+    /* Dark-mode shooting stars */
+	const nightContainer = document.getElementById('night-bg');
+	const STAR_COUNT = 20;
+
+	function generateStars() {
+		  nightContainer.innerHTML = '';
+		  for (let i = 0; i < STAR_COUNT; i++) {
+			const star = document.createElement('div');
+			star.classList.add('shooting_star');
+			star.style.top = `${Math.random() * 100}vh`;
+			star.style.left = `${Math.random() * 100}vw`;
+			const delay = (Math.random() * 9).toFixed(2) + 's';
+			star.style.animationDelay = delay;
+			star.style.setProperty('--star-delay', delay);
+			star.style.opacity = (Math.random() * 0.5 + 0.5).toFixed(2);
+			nightContainer.appendChild(star);
+		  }
+		}
+
+	generateStars();
+   
+  </script>
+</body>
+</html>
