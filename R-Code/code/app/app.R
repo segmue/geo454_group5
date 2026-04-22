@@ -1,93 +1,230 @@
-library(shiny)
-library(tmap)
-library(sf)
-library(raster)
-library(dplyr)
+# ============================================================
+# app.R — Wohnungsknappheit in der Schweiz
+# Modulare Shiny-App mit Tabs und Simple/Pro-Modus
+# ============================================================
 
-tmap_mode("view")
+library(shinyjs)
 
-municipalities <- st_read("../../data/wohnkompass_gemeinden.gpkg", quiet = TRUE) |>
-  rename(municipality = gemeinde_name, rent = miete_vorgabe, share = anteil_haushalte) |>
-  st_transform(4326)
-relief <- raster("../../data/02-relief-georef-clipped-resampled.tif")
+# Alle Module und Daten laden (global.R lädt shiny, leaflet, sf, dplyr, classInt)
+source("global.R")
+source("R/mod_sidebar.R")
+source("R/mod_map.R")
 
-# Precompute one geometry per municipality
-geom <- municipalities[!duplicated(municipalities$bfs_nr), ] |> dplyr::select(bfs_nr)
-
-# Safe interpolation: returns NA if fewer than 2 non-NA values
-safe_approx <- function(x, y, xout) {
-  valid <- !is.na(x) & !is.na(y)
-  if (sum(valid) < 2) return(NA_real_)
-  approx(x[valid], y[valid], xout = xout, rule = 1)$y
-}
-
+# ============================================================
+# UI
+# ============================================================
 ui <- fluidPage(
-  titlePanel("Housing Affordability in Switzerland"),
+  useShinyjs(),
+  tags$head(tags$style(HTML("
+    body { margin: 0; padding: 0; }
+    .container-fluid { padding: 8px; }
+    h5 { margin-top: 8px; margin-bottom: 4px; }
+    .table-condensed td { padding: 2px 6px; }
+
+    /* Slide Toggle Switch */
+    .toggle-slider {
+      position: relative;
+      display: inline-block;
+      width: 34px; height: 18px;
+      background: #ccc;
+      border-radius: 18px;
+      transition: background 0.3s;
+      vertical-align: middle;
+    }
+    .toggle-slider::after {
+      content: '';
+      position: absolute;
+      width: 14px; height: 14px;
+      left: 2px; top: 2px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+    .toggle-input:checked ~ .toggle-slider {
+      background: #4a90d9;
+    }
+    .toggle-input:checked ~ .toggle-slider::after {
+      transform: translateX(16px);
+    }
+
+    /* Header */
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 12px;
+      border-bottom: 1px solid #eee;
+      margin-bottom: 4px;
+    }
+    .app-header .form-group { margin-bottom: 0; }
+
+    /* Full-height sidebar */
+    .col-sm-3 .well {
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 70px);
+      padding: 12px;
+      overflow: hidden;
+    }
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      min-height: 0;
+    }
+
+    /* Register/Folder Tab Styling */
+    .nav-tabs-register {
+      display: flex;
+      margin-bottom: 0;
+      border-bottom: none;
+    }
+    .nav-tabs-register .tab-item {
+      padding: 6px 10px;
+      cursor: pointer;
+      border: 1px solid #ccc;
+      border-bottom: none;
+      border-radius: 4px 4px 0 0;
+      background: #f0f0f0;
+      color: #666;
+      font-size: 11px;
+      margin-right: 2px;
+      position: relative;
+      user-select: none;
+    }
+    .nav-tabs-register .tab-item:hover {
+      background: #e8e8e8;
+    }
+    .nav-tabs-register .tab-item.active {
+      background: white;
+      color: #333;
+      font-weight: bold;
+      z-index: 1;
+      border-bottom: 1px solid white;
+    }
+    .tab-content-frame {
+      border: 1px solid #ccc;
+      border-radius: 0 4px 4px 4px;
+      padding: 12px;
+      margin-top: -1px;
+      background: white;
+      min-height: 40px;
+    }
+    .tab-content-frame .radio { margin-top: 4px; margin-bottom: 4px; }
+
+    /* Info Box (bottom of sidebar) */
+    .sidebar-info-box {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: #fafafa;
+      margin-top: auto;
+      flex-shrink: 0;
+    }
+    .info-box-header {
+      cursor: pointer;
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .info-box-header:hover { background: #f0f0f0; }
+    .info-box-body {
+      padding: 4px 10px 10px;
+      font-size: 12px;
+      color: #555;
+      border-top: 1px solid #ddd;
+    }
+
+    /* Layer title styling */
+    .layer-title {
+      font-size: 15px;
+      font-weight: bold;
+      color: #333;
+      margin-top: 4px;
+      margin-bottom: 16px;
+    }
+  ")),
+  # JS for info box toggle
+  tags$script(HTML("
+    function toggleInfoBox(el) {
+      var content = el.nextElementSibling;
+      var icon = el.querySelector('.info-toggle-icon');
+      if (content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.textContent = '\\u2212';
+      } else {
+        content.style.display = 'none';
+        icon.textContent = '+';
+      }
+    }
+  "))
+  ),
+
+  # Header: Title + Language selector
+  div(class = "app-header",
+    uiOutput("app_title_text"),
+    div(style = "width:80px;",
+      selectInput("lang", label = NULL,
+                  choices = c("DE" = "de", "EN" = "en",
+                              "\u4e2d\u6587" = "zh", "\u0e44\u0e17\u0e22" = "th"),
+                  selected = "de", width = "80px")
+    )
+  ),
+
   sidebarLayout(
     sidebarPanel(width = 3,
-      p("Share of households that can afford a given rent, based on a 30% income affordability threshold."),
-      radioButtons("mode", "Analysis",
-        choices = c("Rent → Share" = "rent", "Share → Rent" = "share"),
-        inline = TRUE
+      # Navigation area (scrollable)
+      div(class = "sidebar-nav",
+        sidebar_nav_ui("sidebar")
       ),
-      conditionalPanel("input.mode == 'rent'",
-        sliderInput("rent", "Rent (CHF/month)", min = 500, max = 6500, value = 2000, step = 500)
-      ),
-      conditionalPanel("input.mode == 'share'",
-        sliderInput("share", "Share of households", min = 0.05, max = 0.95, value = 0.5, step = 0.05)
-      )
+      # Info box (pinned to bottom)
+      sidebar_info_ui("sidebar")
     ),
     mainPanel(width = 9,
-      tmapOutput("map", height = "85vh")
+      map_ui("map")
     )
   )
 )
 
+# ============================================================
+# SERVER
+# ============================================================
 server <- function(input, output, session) {
-  map_data <- reactive({
-    if (input$mode == "rent") {
-      dat <- municipalities[municipalities$rent == input$rent, ]
-      dat$fill_val <- dat$share
-      list(data = dat, legend = "Share of households", n = 7, is_rent = TRUE)
-    } else {
-      interp <- municipalities |>
-        st_drop_geometry() |>
-        arrange(bfs_nr, share) |>
-        group_by(bfs_nr, municipality) |>
-        summarise(
-          interp_rent = safe_approx(share, rent, input$share),
-          .groups = "drop"
-        ) |>
-        filter(!is.na(interp_rent))
-      dat <- merge(geom, interp, by = "bfs_nr")
-      dat$fill_val <- dat$interp_rent
-      list(data = dat, legend = "Rent (CHF)", n = 7, is_rent = FALSE)
-    }
+  # Language reactive
+  lang <- reactive(input$lang %||% "de")
+
+  # App title (translated)
+  output$app_title_text <- renderUI({
+    tags$div(style = "font-size:18px;font-weight:bold;",
+             tr("app_title", lang()))
   })
 
-  output$map <- renderTmap({
-    md <- map_data()
-    dat <- md$data
+  # Sidebar-Modul starten
+  sidebar <- sidebar_server("sidebar", layer_registry, lang)
 
-    blues <- c("#f7fbff", "#deebf7", "#c6dbef", "#9ecae1", "#6baed6", "#3182bd", "#08519c")
-    fill_scale <- tm_scale_intervals(n = md$n, values = blues, style = "quantile")
+  # Map-Modul starten — gibt click_info reactive zurück
+  click_info <- map_server("map", sidebar, mun, mun_dorling,
+                           layer_registry, relief_raster, lang)
 
-    tm_shape(relief) +
-      tm_raster(
-        col.legend = tm_legend_hide(),
-        col.scale = tm_scale_intervals(n = 100, values = grey.colors(100, start = 0.7, end = 1))
-      ) +
-    tm_shape(dat) +
-      tm_polygons(
-        fill = "fill_val",
-        fill.scale = fill_scale,
-        fill.legend = tm_legend(title = md$legend),
-        col = "grey40",
-        lwd = 0.2,
-        popup.vars = if (md$is_rent) c("Municipality" = "municipality", "Rent" = "rent", "Share" = "share")
-                     else c("Municipality" = "municipality", "Interpolated rent" = "interp_rent")
-      ) +
-    tm_basemap("CartoDB.Positron")
+  # Info-Panel in der Sidebar rendern bei Klick
+  output[["sidebar-info_panel"]] <- renderUI({
+    info <- click_info()
+    if (is.null(info)) {
+      return(p(style = "color:#999; font-size:12px; font-style:italic;",
+               tr("click_placeholder", lang())))
+    }
+
+    vals <- info$values
+    vals[is.na(vals)] <- "\u2013"
+
+    tagList(
+      h5(info$municipality),
+      tags$table(class = "table table-sm table-condensed",
+        style = "font-size:12px;",
+        mapply(function(label, val) {
+          tags$tr(tags$td(tags$b(label)), tags$td(val))
+        }, info$labels, vals, SIMPLIFY = FALSE)
+      )
+    )
   })
 }
 
