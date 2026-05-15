@@ -107,9 +107,32 @@ map_server <- function(id, sidebar, mun_data, mun_dorling_data,
         color_col <- cfg$color_col
       }
 
-      # Legende
+      # Legende (dynamisch mit aktueller Sprache)
       l <- lang()
-      legend_html <- cfg$legend_html
+      legend_html <- NULL
+
+      if (cfg$legend_type == "standard" && !cfg$id %in% c("slider", "median_slider")) {
+        vals <- mun_data[[cfg$value_col]]
+        valid <- vals[!is.na(vals)]
+        if (length(valid) >= 2) {
+          brks <- classIntervals(valid, n = cfg$n_breaks, style = cfg$style)$brks
+          pal  <- colorRampPalette(cfg$colors)(cfg$n_breaks)
+          legend_html <- make_standard_legend(brks, pal, tr(cfg$label_key, l),
+                                              suffix = cfg$suffix, lang = l)
+        }
+      } else if (cfg$legend_type == "fixed") {
+        legend_html <- make_fixed_legend(cfg$breaks, cfg$colors,
+                                         tr(cfg$label_key, l), suffix = cfg$suffix, lang = l)
+      } else if (cfg$legend_type == "bivariate") {
+        legend_html <- make_bivariate_legend(cfg$color_matrix, cfg$n_biv,
+                                             cfg$x_label, cfg$y_label, lang = l)
+      } else if (cfg$legend_type == "bivariate_pro") {
+        breaks_y <- attr(mun_data[[paste0("bivariate_color_v2")]], "breaks_y")
+        legend_html <- make_bivariate_legend_pro(cfg$color_matrix, cfg$n_biv,
+                                                  cfg$x_label, cfg$y_label,
+                                                  cfg$breaks_x, breaks_y, lang = l)
+      }
+
       if (cfg$id == "median_slider") {
         size_key <- sidebar$median_size()
         if (is.null(size_key)) size_key <- "3.5zi"
@@ -120,7 +143,8 @@ map_server <- function(id, sidebar, mun_data, mun_dorling_data,
           brks <- classIntervals(valid, n = 6, style = "equal")$brks
           pal  <- colorRampPalette(COLORS_MEDIAN)(6)
           legend_html <- make_standard_legend(brks, pal,
-            paste0(tr("legend_median_prefix", l), " ", size_cfg$label), suffix = " CHF")
+            paste0(tr("legend_median_prefix", l), " ", size_cfg$label),
+            suffix = " CHF", lang = l)
         }
       }
       if (cfg$id == "slider") {
@@ -133,13 +157,13 @@ map_server <- function(id, sidebar, mun_data, mun_dorling_data,
           } else {
             paste0(tr("legend_rent_at", l), " ", round(sidebar$share_val() * 100), "%")
           }
-          legend_html <- make_standard_legend(brks, pal, lbl)
+          legend_html <- make_standard_legend(brks, pal, lbl, lang = l)
         }
       }
 
       # Farben als Spalte ans sf-Objekt (Leaflet braucht Formel ~col)
       map_sf$fill_color_temp <- map_sf[[color_col]]
-      map_sf$fill_color_temp[is.na(map_sf$fill_color_temp)] <- "#f5f5f5"
+      map_sf$fill_color_temp[is.na(map_sf$fill_color_temp)] <- NA_COLOR
 
       proxy <- leafletProxy(ns("map")) %>%
         clearGroup("choropleth") %>%

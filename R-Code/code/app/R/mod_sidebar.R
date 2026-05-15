@@ -78,9 +78,9 @@ sidebar_info_ui <- function(id) {
       tags$span(style = "font-weight:bold; font-size:12px;",
         uiOutput(ns("info_box_header"), inline = TRUE)
       ),
-      tags$span(class = "info-toggle-icon", style = "font-size:14px; font-weight:bold;", "+")
+      tags$span(class = "info-toggle-icon", style = "font-size:14px; font-weight:bold;", "\u2212")
     ),
-    div(class = "info-box-body", style = "display:none;",
+    div(class = "info-box-body", style = "display:block;",
       uiOutput(ns("info_box_content"))
     )
   )

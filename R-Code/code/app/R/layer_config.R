@@ -5,6 +5,9 @@
 
 
 
+# NA-Farbe (grey70)
+NA_COLOR <- "#B3B3B3"
+
 # Farbpaletten
 COLORS_BLUE   <- c("#c6dbef", "#6baed6", "#2171b5", "#08306b")
 COLORS_RED    <- rev(c("#fff5f6", "#f6d6db", "#e7a9b3", "#c86b81", "#8f2f3c", "#4b0f19"))

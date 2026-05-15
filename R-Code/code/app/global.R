@@ -118,36 +118,7 @@ layer_registry <- get_layer_registry(mun)
 # Bivariate V2 Farben einfügen
 layer_registry$bivariate_v2$color_matrix <- bivariate_colors_v2
 
-# ============================================================
-# 7. LEGENDEN VORBERECHNEN
-# ============================================================
-for (lid in names(layer_registry)) {
-  cfg <- layer_registry[[lid]]
-
-  if (cfg$legend_type == "standard" && lid != "slider") {
-    vals <- mun[[cfg$value_col]]
-    valid <- vals[!is.na(vals)]
-    brks <- classIntervals(valid, n = cfg$n_breaks, style = cfg$style)$brks
-    pal  <- colorRampPalette(cfg$colors)(cfg$n_breaks)
-    layer_registry[[lid]]$legend_html <- make_standard_legend(
-      brks, pal, tr(cfg$label_key, "de"), suffix = cfg$suffix)
-
-  } else if (cfg$legend_type == "fixed") {
-    layer_registry[[lid]]$legend_html <- make_fixed_legend(
-      cfg$breaks, cfg$colors, tr(cfg$label_key, "de"), suffix = cfg$suffix)
-
-  } else if (cfg$legend_type == "bivariate") {
-    layer_registry[[lid]]$legend_html <- make_bivariate_legend(
-      cfg$color_matrix, cfg$n_biv, cfg$x_label, cfg$y_label)
-
-  } else if (cfg$legend_type == "bivariate_pro") {
-    # Breaks Y aus der vorberechneten Klassierung (als attr gespeichert)
-    breaks_y <- attr(mun[[paste0("bivariate_color", "_v2")]], "breaks_y")
-    layer_registry[[lid]]$legend_html <- make_bivariate_legend_pro(
-      cfg$color_matrix, cfg$n_biv, cfg$x_label, cfg$y_label,
-      cfg$breaks_x, breaks_y)
-  }
-}
+# Legenden werden dynamisch in mod_map.R generiert (für i18n-Support)
 
 message("Global.R: Daten geladen, ", nrow(mun), " Gemeinden, ",
         length(layer_registry), " Layer konfiguriert.")

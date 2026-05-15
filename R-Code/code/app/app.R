@@ -47,17 +47,6 @@ ui <- fluidPage(
       transform: translateX(16px);
     }
 
-    /* Header */
-    .app-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 6px 12px;
-      border-bottom: 1px solid #eee;
-      margin-bottom: 4px;
-    }
-    .app-header .form-group { margin-bottom: 0; }
-
     /* Full-height sidebar */
     .col-sm-3 .well {
       display: flex;
@@ -156,18 +145,20 @@ ui <- fluidPage(
         icon.textContent = '+';
       }
     }
+  ")),
+  # JS bridge: read language from parent iframe
+  tags$script(HTML("
+    function syncLangFromParent() {
+      var lang = 'de';
+      try { lang = window.parent.currentLang || 'de'; } catch(e) {}
+      if (['de','en','zh','th'].indexOf(lang) === -1) lang = 'de';
+      Shiny.setInputValue('lang', lang);
+    }
+    $(document).on('shiny:connected', function() {
+      syncLangFromParent();
+      setInterval(syncLangFromParent, 1000);
+    });
   "))
-  ),
-
-  # Header: Title + Language selector
-  div(class = "app-header",
-    uiOutput("app_title_text"),
-    div(style = "width:80px;",
-      selectInput("lang", label = NULL,
-                  choices = c("DE" = "de", "EN" = "en",
-                              "\u4e2d\u6587" = "zh", "\u0e44\u0e17\u0e22" = "th"),
-                  selected = "de", width = "80px")
-    )
   ),
 
   sidebarLayout(
@@ -191,12 +182,6 @@ ui <- fluidPage(
 server <- function(input, output, session) {
   # Language reactive
   lang <- reactive(input$lang %||% "de")
-
-  # App title (translated)
-  output$app_title_text <- renderUI({
-    tags$div(style = "font-size:18px;font-weight:bold;",
-             tr("app_title", lang()))
-  })
 
   # Sidebar-Modul starten
   sidebar <- sidebar_server("sidebar", layer_registry, lang)

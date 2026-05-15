@@ -89,7 +89,12 @@ TRANSLATIONS <- list(
     biv_mid           = "mittel",
     biv_high          = "hoch",
     biv_mid_low       = "mittel-tief",
-    biv_mid_high      = "mittel-hoch"
+    biv_mid_high      = "mittel-hoch",
+
+    # Legend axis labels
+    legend_vacancy       = "Leerstand",
+    legend_affordability = "Leistbarkeit",
+    legend_unaffordability = "Unleistbarkeit"
   ),
 
   en = list(
@@ -166,7 +171,12 @@ TRANSLATIONS <- list(
     biv_mid           = "medium",
     biv_high          = "high",
     biv_mid_low       = "medium-low",
-    biv_mid_high      = "medium-high"
+    biv_mid_high      = "medium-high",
+
+    # Legend axis labels
+    legend_vacancy       = "Vacancy",
+    legend_affordability = "Affordability",
+    legend_unaffordability = "Unaffordability"
   ),
 
   # Mandarin Chinese - stubs, fallback to DE
