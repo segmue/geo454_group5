@@ -1,6 +1,6 @@
 # ============================================================
 # mod_sidebar.R
-# Shiny-Modul: Sidebar mit Tabs, Layer-Auswahl und Controls
+# Shiny-Modul: Sidebar mit Sektionsliste und Controls
 # ============================================================
 
 # Mapping discrete slider positions to room size keys
@@ -11,34 +11,23 @@ MEDIAN_SIZE_LABELS <- c("1.5-Zi.", "2.5-Zi.", "3.5-Zi.", "4.5-Zi.", "5.5-Zi.", "
 sidebar_nav_ui <- function(id) {
   ns <- NS(id)
   tagList(
-    # Row: Tabs + Pro toggle
-    div(style = "display:flex; align-items:flex-end; gap:6px; margin-bottom:0;",
-      # Register tabs
-      div(style = "flex:1;",
-        uiOutput(ns("tab_buttons"))
-      ),
-      # Simple/Pro Slide-Toggle
-      div(style = "white-space:nowrap; padding-bottom:6px;",
-        tags$label(class = "toggle-switch",
-          style = "cursor:pointer;display:inline-flex;align-items:center;",
-          tags$input(type = "checkbox", id = ns("pro_mode"),
-                     class = "toggle-input",
-                     style = "display:none;"),
-          tags$span(class = "toggle-slider"),
-          tags$span("Pro", style = "margin-left:6px;font-size:11px;color:#999;")
-        )
+    # Pro toggle (top right)
+    div(style = "display:flex; justify-content:flex-end; margin-bottom:6px;",
+      tags$label(class = "toggle-switch",
+        style = "cursor:pointer;display:inline-flex;align-items:center;",
+        tags$input(type = "checkbox", id = ns("pro_mode"),
+                   class = "toggle-input",
+                   style = "display:none;"),
+        tags$span(class = "toggle-slider"),
+        tags$span("Pro", style = "margin-left:6px;font-size:11px;color:#999;")
       )
     ),
 
-    # Hidden input to track active tab (managed by JS)
-    tags$input(type = "hidden", id = ns("main_tabs"), value = "availability",
-               class = "shiny-bound-input"),
+    # Layer list with section headers
+    uiOutput(ns("layer_list_ui")),
 
-    # Tab content frame (bordered area below tabs)
-    div(class = "tab-content-frame",
-      # Layer radio buttons (choices updated dynamically; hidden if single layer)
-      uiOutput(ns("layer_radio_ui")),
-
+    # Layer-specific controls
+    div(class = "controls-frame",
       # Dorling-Checkbox (nur bei Bivariate V1)
       conditionalPanel(
         condition = sprintf("input['%s'] == 'bivariate_v1'", ns("layer")),
@@ -90,66 +79,67 @@ sidebar_server <- function(id, layer_registry, lang) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
-    # --- Register-style tab buttons (rendered dynamically for i18n) ---
-    output$tab_buttons <- renderUI({
+    # --- Layer list with section headers ---
+    output$layer_list_ui <- renderUI({
       l <- lang()
-      tabs <- c("availability", "affordability", "result")
-      labels <- c(tr("tab_availability", l), tr("tab_affordability", l), tr("tab_result", l))
-      active <- isolate(input$main_tabs) %||% "availability"
-
-      tags$div(class = "nav-tabs-register",
-        lapply(seq_along(tabs), function(i) {
-          cls <- if (tabs[i] == active) "tab-item active" else "tab-item"
-          tags$div(class = cls,
-            onclick = sprintf("
-              document.querySelectorAll('.nav-tabs-register .tab-item').forEach(function(t){t.classList.remove('active')});
-              this.classList.add('active');
-              Shiny.setInputValue('%s', '%s', {priority:'event'});
-            ", ns("main_tabs"), tabs[i]),
-            labels[i]
-          )
-        })
-      )
-    })
-
-    # --- Reset to Easy mode on tab switch ---
-    observeEvent(input$main_tabs, {
-      updateCheckboxInput(session, "pro_mode", value = FALSE)
-    }, ignoreInit = TRUE)
-
-    # --- Layer radio buttons (dynamic based on tab + mode) ---
-    # Hidden when only 1 layer available
-    output$layer_radio_ui <- renderUI({
-      l <- lang()
-      tab <- input$main_tabs %||% "availability"
       pro <- isTRUE(input$pro_mode)
       mode_filter <- if (pro) c("simple", "pro") else "simple"
 
-      layers <- Filter(function(lr) lr$tab == tab && lr$mode %in% mode_filter, layer_registry)
-      layers <- layers[order(sapply(layers, `[[`, "order"))]
+      tabs <- c("availability", "affordability", "result")
+      tab_labels <- c(tr("tab_availability", l), tr("tab_affordability", l), tr("tab_result", l))
 
-      if (length(layers) == 0) return(NULL)
+      # Currently selected layer (preserve selection if still visible)
+      current <- isolate(input$layer)
 
-      choices <- setNames(
-        sapply(layers, `[[`, "id"),
-        sapply(layers, function(lr) tr(lr$label_key, l))
-      )
+      # Build UI elements and collect all visible layer IDs
+      ui_elements <- list()
+      all_layer_ids <- character(0)
 
-      if (length(choices) == 1) {
-        # Single layer: don't show radio buttons, just set the value
-        tagList(
-          tags$script(sprintf(
-            "Shiny.setInputValue('%s', '%s');",
-            ns("layer"), choices[1]
-          ))
+      for (i in seq_along(tabs)) {
+        layers <- Filter(function(lr) lr$tab == tabs[i] && lr$mode %in% mode_filter, layer_registry)
+        layers <- layers[order(sapply(layers, `[[`, "order"))]
+        if (length(layers) == 0) next
+
+        # Section header
+        ui_elements[[length(ui_elements) + 1]] <- tags$div(
+          class = "section-header", tab_labels[i]
         )
-      } else {
-        radioButtons(ns("layer"), label = NULL,
-                     choices = choices, selected = choices[1])
+
+        # Radio items for this section
+        for (lr in layers) {
+          lid <- lr$id
+          lbl <- tr(lr$label_key, l)
+          all_layer_ids <- c(all_layer_ids, lid)
+
+          ui_elements[[length(ui_elements) + 1]] <- tags$label(
+            class = "layer-radio-item",
+            tags$input(
+              type = "radio",
+              name = ns("layer"),
+              value = lid,
+              onclick = sprintf("Shiny.setInputValue('%s', '%s', {priority:'event'})", ns("layer"), lid)
+            ),
+            lbl
+          )
+        }
       }
+
+      # Determine which layer should be selected
+      selected <- if (!is.null(current) && current %in% all_layer_ids) current else all_layer_ids[1]
+
+      # Add JS to set initial selection and check the right radio
+      ui_elements[[length(ui_elements) + 1]] <- tags$script(HTML(sprintf(
+        "Shiny.setInputValue('%s', '%s');
+         document.querySelectorAll('input[name=\"%s\"]').forEach(function(r) {
+           r.checked = (r.value === '%s');
+         });",
+        ns("layer"), selected, ns("layer"), selected
+      )))
+
+      tagList(ui_elements)
     })
 
-    # --- Dorling checkbox (new label) ---
+    # --- Dorling checkbox ---
     output$dorling_ui <- renderUI({
       checkboxInput(ns("dorling"), tr("label_dorling", lang()), FALSE)
     })
@@ -225,7 +215,6 @@ sidebar_server <- function(id, layer_registry, lang) {
     # --- Return values for other modules ---
     list(
       active_layer_id = reactive(input$layer),
-      active_tab      = reactive(input$main_tabs),
       dorling_on      = reactive(input$dorling),
       pro_mode        = reactive(isTRUE(input$pro_mode)),
       slider_mode     = reactive(input$slider_mode),

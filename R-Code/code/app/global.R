@@ -25,6 +25,12 @@ source("R/legend_utils.R")
 mun_raw <- readRDS("data/municipalities_analysis.rds")
 # Relief-Raster laden (bereits reprojiziert via preprocess_relief.R)
 relief_raster <- raster("data/02-relief-georef-clipped-resampled.tif")
+# Landesgrenze laden: nur Schweiz, als Linie (damit Klick auf darunterliegende Polygone funktioniert)
+ch_border <- st_read("data/swissBOUNDARIES3D_1_5_TLM_LANDESGEBIET.shp", quiet = TRUE)
+ch_border <- st_zm(ch_border, drop = TRUE, what = "ZM")
+ch_border <- ch_border[ch_border$NAME == "Schweiz", ]
+ch_border <- st_cast(ch_border, "MULTILINESTRING")
+ch_border <- st_transform(ch_border, 4326)
 
 # ============================================================
 # 2. DATEN VORBEREITEN
@@ -96,19 +102,22 @@ mun <- add_bivariate_color_col(mun,
   bivariate_colors_v2, suffix = "_v2")
 
 # ============================================================
-# 5. DORLING CARTOGRAM VORBERECHNEN
+# 5. DORLING CARTOGRAM (gecacht)
 # ============================================================
-message("  Dorling cartogram...")
-t_dorling <- proc.time()
-mun_proj <- st_transform(mun, 2056)
-mun_proj <- mun_proj[!is.na(mun_proj$sum_gwr) & mun_proj$sum_gwr > 0, ]
-
-mun_dorling <- cartogram_dorling(mun_proj,
-                                  weight  = "sum_gwr",
-                                  k       = 0.8,
-                                  itermax = 30)
-mun_dorling <- st_transform(mun_dorling, 4326)
-message("  Dorling fertig (", round((proc.time() - t_dorling)[3], 1), "s)")
+dorling_cache <- "data/mun_dorling_cached.rds"
+if (file.exists(dorling_cache)) {
+  message("  Dorling cartogram aus Cache laden...")
+  mun_dorling <- readRDS(dorling_cache)
+} else {
+  message("  Dorling cartogram berechnen...")
+  t_dorling <- proc.time()
+  mun_proj <- st_transform(mun, 2056)
+  mun_proj <- mun_proj[!is.na(mun_proj$sum_gwr) & mun_proj$sum_gwr > 0, ]
+  mun_dorling <- cartogram_dorling(mun_proj, weight = "sum_gwr", k = 0.8, itermax = 30)
+  mun_dorling <- st_transform(mun_dorling, 4326)
+  saveRDS(mun_dorling, dorling_cache)
+  message("  Dorling fertig (", round((proc.time() - t_dorling)[3], 1), "s), Cache gespeichert")
+}
 
 # ============================================================
 # 6. LAYER-REGISTRY AUFBAUEN

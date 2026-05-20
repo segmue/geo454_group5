@@ -5,8 +5,8 @@
 
 
 
-# NA-Farbe (grey70)
-NA_COLOR <- "#B3B3B3"
+# NA-Farbe (grey85)
+NA_COLOR <- "#D9D9D9"
 
 # Farbpaletten
 COLORS_BLUE   <- c("#c6dbef", "#6baed6", "#2171b5", "#08306b")

@@ -61,44 +61,34 @@ ui <- fluidPage(
       min-height: 0;
     }
 
-    /* Register/Folder Tab Styling */
-    .nav-tabs-register {
-      display: flex;
-      margin-bottom: 0;
-      border-bottom: none;
-    }
-    .nav-tabs-register .tab-item {
-      padding: 6px 10px;
-      cursor: pointer;
-      border: 1px solid #ccc;
-      border-bottom: none;
-      border-radius: 4px 4px 0 0;
-      background: #f0f0f0;
-      color: #666;
-      font-size: 11px;
-      margin-right: 2px;
-      position: relative;
-      user-select: none;
-    }
-    .nav-tabs-register .tab-item:hover {
-      background: #e8e8e8;
-    }
-    .nav-tabs-register .tab-item.active {
-      background: white;
-      color: #333;
+    /* Section headers in layer list */
+    .section-header {
       font-weight: bold;
-      z-index: 1;
-      border-bottom: 1px solid white;
+      font-size: 12px;
+      color: #333;
+      margin-top: 10px;
+      margin-bottom: 4px;
+      padding-bottom: 2px;
+      border-bottom: 1px solid #ddd;
     }
-    .tab-content-frame {
-      border: 1px solid #ccc;
-      border-radius: 0 4px 4px 4px;
-      padding: 12px;
-      margin-top: -1px;
-      background: white;
-      min-height: 40px;
+    .section-header:first-child { margin-top: 0; }
+
+    /* Layer radio items */
+    .layer-radio-item {
+      display: flex;
+      align-items: center;
+      padding: 3px 0;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: normal;
+      color: #555;
     }
-    .tab-content-frame .radio { margin-top: 4px; margin-bottom: 4px; }
+    .layer-radio-item:hover { color: #333; }
+    .layer-radio-item input[type='radio'] { margin: 0 6px 0 4px; }
+    .layer-radio-item.active { color: #333; }
+
+    /* Controls frame below layer list */
+    .controls-frame { padding: 8px 0 0 0; }
 
     /* Info Box (bottom of sidebar) */
     .sidebar-info-box {
@@ -146,17 +136,14 @@ ui <- fluidPage(
       }
     }
   ")),
-  # JS bridge: read language from parent iframe
+  # JS bridge: receive language from parent iframe via postMessage
   tags$script(HTML("
-    function syncLangFromParent() {
-      var lang = 'de';
-      try { lang = window.parent.currentLang || 'de'; } catch(e) {}
-      if (['de','en','zh','th'].indexOf(lang) === -1) lang = 'de';
-      Shiny.setInputValue('lang', lang);
-    }
-    $(document).on('shiny:connected', function() {
-      syncLangFromParent();
-      setInterval(syncLangFromParent, 1000);
+    window.addEventListener('message', function(e) {
+      if (e.data && e.data.lang) {
+        var lang = e.data.lang;
+        if (['de','en','zh','th'].indexOf(lang) === -1) lang = 'de';
+        Shiny.setInputValue('lang', lang);
+      }
     });
   "))
   ),
@@ -188,7 +175,7 @@ server <- function(input, output, session) {
 
   # Map-Modul starten — gibt click_info reactive zurück
   click_info <- map_server("map", sidebar, mun, mun_dorling,
-                           layer_registry, relief_raster, lang)
+                           layer_registry, relief_raster, ch_border, lang)
 
   # Info-Panel in der Sidebar rendern bei Klick
   output[["sidebar-info_panel"]] <- renderUI({

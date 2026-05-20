@@ -9,7 +9,8 @@ map_ui <- function(id) {
 }
 
 map_server <- function(id, sidebar, mun_data, mun_dorling_data,
-                       layer_registry, relief_raster = NULL, lang = reactive("de")) {
+                       layer_registry, relief_raster = NULL,
+                       ch_border = NULL, lang = reactive("de")) {
   moduleServer(id, function(input, output, session) {
     ns <- session$ns
 
@@ -167,6 +168,7 @@ map_server <- function(id, sidebar, mun_data, mun_dorling_data,
 
       proxy <- leafletProxy(ns("map")) %>%
         clearGroup("choropleth") %>%
+        clearGroup("border") %>%
         removeControl("legend")
 
       proxy %>%
@@ -186,6 +188,18 @@ map_server <- function(id, sidebar, mun_data, mun_dorling_data,
             fillOpacity = 0.9, bringToFront = TRUE
           )
         )
+
+      # Landesgrenze zuoberst (als Linie, damit Klick auf Gemeinden funktioniert)
+      if (!is.null(ch_border)) {
+        proxy %>%
+          addPolylines(
+            data   = ch_border,
+            color  = "#666666",
+            weight = 1.5,
+            opacity = 0.8,
+            group  = "border"
+          )
+      }
 
       if (!is.null(legend_html)) {
         proxy %>%
