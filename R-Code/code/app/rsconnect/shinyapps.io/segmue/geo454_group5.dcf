@@ -5,6 +5,6 @@ account: segmue
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 17201189
-bundleId: 12011660
+bundleId: 12040079
 url: https://segmue.shinyapps.io/geo454_group5/
 version: 1

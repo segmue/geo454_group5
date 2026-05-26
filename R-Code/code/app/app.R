@@ -17,7 +17,10 @@ ui <- fluidPage(
   useShinyjs(),
   tags$head(tags$style(HTML("
     body { margin: 0; padding: 0; }
-    .container-fluid { padding: 8px; }
+    .container-fluid { padding: 0; }
+    .row { margin-left: 0; margin-right: 0; }
+    .col-sm-3 { padding-left: 0; padding-right: 0; }
+    .col-sm-9 { padding-left: 0; padding-right: 0; }
     h5 { margin-top: 8px; margin-bottom: 4px; }
     .table-condensed td { padding: 2px 6px; }
 
@@ -51,7 +54,9 @@ ui <- fluidPage(
     .col-sm-3 .well {
       display: flex;
       flex-direction: column;
-      height: calc(100vh - 70px);
+      height: 100vh;
+      margin-bottom: 0;
+      border-radius: 0;
       padding: 12px;
       overflow: hidden;
     }

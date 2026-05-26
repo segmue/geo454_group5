@@ -64,7 +64,11 @@ mun$Leerwohnungsziffer.2025_color <- as.character(labeled_leer)
 mun <- add_color_col(mun, "avg_rent_weighted", 6, COLORS_BLUE, "equal")
 
 # --- quote_gesamt (Violett) ---
-mun <- add_color_col(mun, "quote_gesamt", 6, COLORS_PURPLE, "equal")
+mun$quote_gesamt_pct <- round(mun$quote_gesamt * 100, 1)
+mun <- add_color_col(mun, "quote_gesamt_pct", 5, COLORS_PURPLE, "equal")
+
+# --- Leerstehende Wohnungen (absolut) ---
+mun$leerstehende_wohnungen <- round(mun$Leerwohnungsziffer.2025 / 100 * mun$sum_gwr)
 
 # --- median_*zi (Orange/Braun, 6 Grössen) ---
 median_cols <- c("median_1.5zi", "median_2.5zi", "median_3.5zi",

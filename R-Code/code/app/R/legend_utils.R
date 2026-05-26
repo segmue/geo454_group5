@@ -19,9 +19,9 @@ make_standard_legend <- function(breaks, colors, title, suffix = "", reverse = F
   labels <- character(n)
   for (i in seq_len(n)) {
     labels[i] <- paste0(
-      format(round(breaks[i], 2), big.mark = "'"),
+      format(round(breaks[i], 0), big.mark = "'"),
       " – ",
-      format(round(breaks[i + 1], 2), big.mark = "'"),
+      format(round(breaks[i + 1], 0), big.mark = "'"),
       suffix
     )
   }

@@ -5,7 +5,7 @@
 
 map_ui <- function(id) {
   ns <- NS(id)
-  leafletOutput(ns("map"), height = "88vh")
+  leafletOutput(ns("map"), height = "100vh")
 }
 
 map_server <- function(id, sidebar, mun_data, mun_dorling_data,

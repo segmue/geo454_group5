@@ -57,9 +57,9 @@ get_layer_registry <- function(mun) {
       colors     = COLORS_LEER_ALL,
       suffix     = "%",
       popup_cols   = c("municipality", "Leerwohnungsziffer.2025",
-                        "sum_gwr", "sum_angebote"),
+                        "leerstehende_wohnungen"),
       popup_label_keys = c("popup_municipality", "popup_vacancy_pct",
-                            "popup_gwr_total", "popup_inserate"),
+                            "popup_vacant_count"),
       has_dorling = FALSE
     ),
 
@@ -78,10 +78,9 @@ get_layer_registry <- function(mun) {
       colors     = COLORS_BLUE,
       style      = "equal",
       suffix     = " CHF",
-      popup_cols   = c("municipality", "avg_rent_weighted", "valid_weights",
-                        "sum_angebote"),
+      popup_cols   = c("municipality", "avg_rent_weighted", "sum_angebote"),
       popup_label_keys = c("popup_municipality", "popup_avg_rent",
-                            "popup_data_coverage", "popup_inserate"),
+                            "popup_inserate"),
       has_dorling = FALSE
     ),
 
@@ -113,14 +112,14 @@ get_layer_registry <- function(mun) {
       title_key  = "title_quote_gesamt",
       info_key   = "info_quote_gesamt",
       mode       = "pro",
-      color_col  = "quote_gesamt_color",
-      value_col  = "quote_gesamt",
+      color_col  = "quote_gesamt_pct_color",
+      value_col  = "quote_gesamt_pct",
       legend_type = "standard",
       n_breaks   = 5,
       colors     = COLORS_PURPLE,
       style      = "equal",
-      suffix     = "",
-      popup_cols   = c("municipality", "quote_gesamt", "sum_angebote", "sum_gwr"),
+      suffix     = "%",
+      popup_cols   = c("municipality", "quote_gesamt_pct", "sum_angebote", "sum_gwr"),
       popup_label_keys = c("popup_municipality", "popup_inseratequote",
                             "popup_inserate", "popup_gwr_total"),
       has_dorling = FALSE

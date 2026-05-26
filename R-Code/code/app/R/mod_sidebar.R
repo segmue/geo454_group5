@@ -6,6 +6,18 @@
 # Mapping discrete slider positions to room size keys
 MEDIAN_SIZE_ORDER <- c("1.5zi", "2.5zi", "3.5zi", "4.5zi", "5.5zi", "6pluszi")
 MEDIAN_SIZE_LABELS <- c("1.5-Zi.", "2.5-Zi.", "3.5-Zi.", "4.5-Zi.", "5.5-Zi.", "6+-Zi.")
+MEDIAN_SIZE_LABELS_EN <- c("1.5 rm.", "2.5 rm.", "3.5 rm.", "4.5 rm.", "5.5 rm.", "6+ rm.")
+MEDIAN_SIZE_LABELS_ZH <- c("1.5\u5ba4", "2.5\u5ba4", "3.5\u5ba4", "4.5\u5ba4", "5.5\u5ba4", "6+\u5ba4")
+MEDIAN_SIZE_LABELS_TH <- c("1.5\u0e2b\u0e49\u0e2d\u0e07", "2.5\u0e2b\u0e49\u0e2d\u0e07", "3.5\u0e2b\u0e49\u0e2d\u0e07", "4.5\u0e2b\u0e49\u0e2d\u0e07", "5.5\u0e2b\u0e49\u0e2d\u0e07", "6+\u0e2b\u0e49\u0e2d\u0e07")
+
+get_size_labels <- function(lang) {
+  switch(lang,
+    en = MEDIAN_SIZE_LABELS_EN,
+    zh = MEDIAN_SIZE_LABELS_ZH,
+    th = MEDIAN_SIZE_LABELS_TH,
+    MEDIAN_SIZE_LABELS
+  )
+}
 
 # --- Navigation UI (upper part of sidebar) ---
 sidebar_nav_ui <- function(id) {
@@ -153,7 +165,7 @@ sidebar_server <- function(id, layer_registry, lang) {
     output$median_label <- renderUI({
       pos <- input$median_size_pos
       if (is.null(pos)) pos <- 3
-      label <- MEDIAN_SIZE_LABELS[pos]
+      label <- get_size_labels(lang())[pos]
       tags$div(style = "text-align:center; font-size:12px; color:#666; margin-top:-8px;",
                label)
     })
