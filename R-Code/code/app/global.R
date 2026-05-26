@@ -123,6 +123,12 @@ if (file.exists(dorling_cache)) {
   message("  Dorling fertig (", round((proc.time() - t_dorling)[3], 1), "s), Cache gespeichert")
 }
 
+# Dorling-Polygone zu glatten Kreisen umwandeln (360 Vertices → immer rund)
+mun_dorling_2056 <- st_transform(mun_dorling, 2056)
+radii_m <- as.numeric(sqrt(st_area(mun_dorling_2056) / pi))
+smooth_geom <- st_geometry(st_buffer(st_centroid(mun_dorling_2056), dist = radii_m, nQuadSegs = 90))
+mun_dorling <- st_transform(st_set_geometry(mun_dorling_2056, smooth_geom), 4326)
+
 # ============================================================
 # 6. LAYER-REGISTRY AUFBAUEN
 # ============================================================

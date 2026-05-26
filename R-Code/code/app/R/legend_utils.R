@@ -14,14 +14,14 @@ make_na_entry <- function(lang = "de") {
 }
 
 #' Standard-Legende mit Farbboxen und Labels
-make_standard_legend <- function(breaks, colors, title, suffix = "", reverse = FALSE, lang = "de") {
+make_standard_legend <- function(breaks, colors, title, suffix = "", reverse = FALSE, lang = "de", digits = 0) {
   n <- length(colors)
   labels <- character(n)
   for (i in seq_len(n)) {
     labels[i] <- paste0(
-      format(round(breaks[i], 0), big.mark = "'"),
+      format(round(breaks[i], digits), big.mark = "'"),
       " – ",
-      format(round(breaks[i + 1], 0), big.mark = "'"),
+      format(round(breaks[i + 1], digits), big.mark = "'"),
       suffix
     )
   }

@@ -11,7 +11,7 @@ NA_COLOR <- "#D9D9D9"
 # Farbpaletten
 COLORS_BLUE   <- c("#c6dbef", "#6baed6", "#2171b5", "#08306b")
 COLORS_RED    <- rev(c("#fff5f6", "#f6d6db", "#e7a9b3", "#c86b81", "#8f2f3c", "#4b0f19"))
-COLORS_PURPLE <- c("#c4c4df", "#9e9ac8", "#6a51a3", "#54278f", "#3f007d")
+COLORS_PURPLE <- c("#c4c4df", "#9e9ac8", "#6a51a3", "#4a1382", "#1a0040")
 COLORS_MEDIAN <- c("#fff5eb", "#fdd0a2", "#fd8d3c", "#d94801", "#8c2d04", "#4a1500")
 
 # Leerstandsziffer: Rot (angespannt) + Blau (entspannt)

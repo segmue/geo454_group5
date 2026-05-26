@@ -153,12 +153,13 @@ map_server <- function(id, sidebar, mun_data, mun_dorling_data,
         if (length(valid_vals) >= 2) {
           brks <- classIntervals(valid_vals, n = 7, style = "quantile")$brks
           pal  <- colorRampPalette(SLIDER_BLUES)(7)
-          lbl <- if (sidebar$slider_mode() == "rent") {
-            paste0(tr("legend_share_at", l), " ", sidebar$rent_val(), " CHF")
+          if (sidebar$slider_mode() == "rent") {
+            lbl <- paste0(tr("legend_share_at", l), " ", sidebar$rent_val(), " CHF")
+            legend_html <- make_standard_legend(brks * 100, pal, lbl, suffix = "%", lang = l)
           } else {
-            paste0(tr("legend_rent_at", l), " ", round(sidebar$share_val() * 100), "%")
+            lbl <- paste0(tr("legend_rent_at", l), " ", round(sidebar$share_val() * 100), "%")
+            legend_html <- make_standard_legend(brks, pal, lbl, suffix = " CHF", lang = l)
           }
-          legend_html <- make_standard_legend(brks, pal, lbl, lang = l)
         }
       }
 
